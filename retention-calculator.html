@@ -154,6 +154,80 @@
     .breakdown-formula { font-size: 0.72rem; color: var(--muted); margin-top: 3px; }
     .breakdown-amt { font-size: 0.9rem; font-weight: 700; color: var(--danger); white-space: nowrap; }
 
+    .expandable-row {
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .expand-toggle {
+      display: inline-block;
+      width: 1.2rem;
+      height: 1.2rem;
+      line-height: 1.2rem;
+      text-align: center;
+      font-weight: 700;
+      color: var(--primary);
+      margin-right: 0.3rem;
+      transition: transform 0.2s;
+    }
+
+    .expand-toggle.open {
+      transform: rotate(90deg);
+    }
+
+    .expandable-section {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+
+    .expandable-section.open {
+      max-height: 300px;
+    }
+
+    .expandable-content {
+      background: rgba(79,70,229,0.02);
+      border-left: 2px solid var(--border);
+      padding: 1rem;
+      margin: 0.5rem 0 0.5rem -1.5rem;
+      margin-left: 0;
+      padding-left: 1.5rem;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+    }
+
+    .param-input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+    }
+
+    .param-input-group label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .param-input-group input {
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 0.4rem 0.6rem;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--primary);
+      background: white;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .param-input-group input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(79,70,229,0.1);
+    }
+
     .metrics-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.25rem; }
 
     .metric-card {
@@ -251,6 +325,14 @@
 
       <div class="slider-group">
         <div class="slider-header">
+          <span class="slider-label">Recruiter Fees</span>
+          <span class="slider-val" id="d-recfee"></span>
+        </div>
+        <input type="range" id="s-recfee" min="0" max="50" step="0.5" value="17.5">
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-header">
           <span class="slider-label">Annual Salary</span>
           <span class="slider-val" id="d-salary"></span>
         </div>
@@ -293,16 +375,36 @@
     <div class="card">
       <div class="card-title">Replacement Cost Breakdown</div>
       <div class="breakdown-row">
-        <div><div class="breakdown-name">Recruiter Fees</div><div class="breakdown-formula">17.5% of annual salary</div></div>
+        <div><div class="breakdown-name">Recruiter Fees</div><div class="breakdown-formula" id="f-rec"></div></div>
         <div class="breakdown-amt" id="b-rec"></div>
       </div>
       <div class="breakdown-row">
         <div><div class="breakdown-name">Hiring Manager Time</div><div class="breakdown-formula" id="f-hmt"></div></div>
         <div class="breakdown-amt" id="b-hmt"></div>
       </div>
-      <div class="breakdown-row">
-        <div><div class="breakdown-name">HR Panel Cost</div><div class="breakdown-formula">3 rounds × 4 people × 2 h × €120</div></div>
-        <div class="breakdown-amt" id="b-hrp">€2,880</div>
+      <div class="breakdown-row expandable-row" id="hr-expand-toggle">
+        <div><div class="breakdown-name"><span class="expand-toggle">▶</span>HR Panel Cost</div><div class="breakdown-formula" id="f-hrp"></div></div>
+        <div class="breakdown-amt" id="b-hrp"></div>
+      </div>
+      <div class="expandable-section" id="hr-expandable">
+        <div class="expandable-content">
+          <div class="param-input-group">
+            <label>Rounds</label>
+            <input type="number" id="hr-rounds" min="1" max="20" value="3">
+          </div>
+          <div class="param-input-group">
+            <label>People per Round</label>
+            <input type="number" id="hr-people" min="1" max="20" value="4">
+          </div>
+          <div class="param-input-group">
+            <label>Hours per Round</label>
+            <input type="number" id="hr-hours" min="0.5" max="20" step="0.5" value="2">
+          </div>
+          <div class="param-input-group">
+            <label>Hourly Rate</label>
+            <input type="number" id="hr-rate" min="10" max="500" value="120">
+          </div>
+        </div>
       </div>
       <div class="breakdown-row">
         <div><div class="breakdown-name">Market Salary Premium</div><div class="breakdown-formula">8% above current salary (year 1 delta)</div></div>
@@ -350,14 +452,20 @@
 
   // Store actual values (including overrides)
   const values = {
+    recfee: 17.5,
     salary: 80000,
     hmh: 40,
     tth: 3,
     prod: 50,
     raise: 5000,
+    hrRounds: 3,
+    hrPeople: 4,
+    hrHours: 2,
+    hrRate: 120,
   };
 
   const fields = {
+    recfee: { displayId: 'd-recfee', sliderId: 's-recfee', clamp: [0, 100] },
     salary: { displayId: 'd-salary', sliderId: 's-salary', clamp: null },
     hmh: { displayId: 'd-hmh', sliderId: 's-hmh', clamp: null },
     tth: { displayId: 'd-tth', sliderId: 's-tth', clamp: null },
@@ -419,6 +527,45 @@
     });
   });
 
+  // HR Panel Cost toggle
+  const hrToggle = $('hr-expand-toggle');
+  const hrSection = $('hr-expandable');
+  const hrToggleIcon = hrToggle.querySelector('.expand-toggle');
+  let hrExpanded = false;
+
+  hrToggle.addEventListener('click', () => {
+    hrExpanded = !hrExpanded;
+    hrSection.classList.toggle('open');
+    hrToggleIcon.classList.toggle('open');
+  });
+
+  // HR Panel inputs
+  const hrInputs = {
+    rounds: $('hr-rounds'),
+    people: $('hr-people'),
+    hours: $('hr-hours'),
+    rate: $('hr-rate'),
+  };
+
+  Object.entries(hrInputs).forEach(([key, input]) => {
+    input.addEventListener('change', () => {
+      const val = parseFloat(input.value) || 0;
+      const minVal = parseFloat(input.min);
+      const finalVal = Math.max(minVal, val);
+      values['hr' + key.charAt(0).toUpperCase() + key.slice(1)] = finalVal;
+      input.value = finalVal;
+      calc();
+    });
+
+    input.addEventListener('input', () => {
+      const val = parseFloat(input.value) || 0;
+      const minVal = parseFloat(input.min);
+      const finalVal = Math.max(minVal, val);
+      values['hr' + key.charAt(0).toUpperCase() + key.slice(1)] = finalVal;
+      calc();
+    });
+  });
+
   function fill(slider) {
     const lo = +slider.min, hi = +slider.max, v = +slider.value;
     const p = ((v - lo) / (hi - lo)) * 100;
@@ -426,23 +573,25 @@
   }
 
   function calc() {
+    const recfee = values.recfee;
     const salary = values.salary;
     const hmh = values.hmh;
     const tth = values.tth;
     const prod = values.prod;
     const raise = values.raise;
 
+    $('d-recfee').textContent = `${recfee}%`;
     $('d-salary').textContent = fmt(salary);
     $('d-hmh').textContent = `${hmh} h`;
     $('d-tth').textContent = `${tth} month${tth !== 1 ? 's' : ''}`;
     $('d-prod').textContent = `${prod}%`;
     $('d-raise').textContent = fmt(raise);
 
-    ['s-salary', 's-hmh', 's-tth', 's-prod', 's-raise'].forEach(id => fill($(id)));
+    ['s-recfee', 's-salary', 's-hmh', 's-tth', 's-prod', 's-raise'].forEach(id => fill($(id)));
 
-    const recruiter = salary * 0.175;
+    const recruiter = salary * (recfee / 100);
     const hmTime = hmh * 120;
-    const hrPanel = 2880;
+    const hrPanel = values.hrRounds * values.hrPeople * values.hrHours * values.hrRate;
     const premium = salary * 0.08;
     const vacuum = 0.40 * (salary / 12) * tth;
     const gap = 1 - prod / 100;
@@ -454,6 +603,8 @@
     const netSave = totalReplace - totalRetain;
 
     $('f-hmt').textContent = `${hmh} h × ${currency === 'eur' ? '€' : '$'}120/h`;
+    $('f-hrp').textContent = `${values.hrRounds} rounds × ${values.hrPeople} people × ${values.hrHours} h × ${currency === 'eur' ? '€' : '$'}${values.hrRate}`;
+    $('f-rec').textContent = `${recfee}% of annual salary`;
     $('f-vac').textContent = `40% × monthly salary × ${tth} month${tth !== 1 ? 's' : ''}`;
     $('f-ramp').textContent = `4 months × salary/12 × ${(gap * 100).toFixed(0)}% gap`;
 
@@ -462,7 +613,7 @@
     $('b-prem').textContent = fmt(premium);
     $('b-vac').textContent = fmt(vacuum);
     $('b-ramp').textContent = fmt(ramp);
-    $('b-hrp').textContent = currency === 'eur' ? '€2,880' : '$2,880';
+    $('b-hrp').textContent = fmt(hrPanel);
     $('b-know').textContent = currency === 'eur' ? '€15,000' : '$15,000';
 
     $('m-rep').textContent = fmt(totalReplace);
