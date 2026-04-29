@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Employee Retention Cost Calculator</title>
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --danger: #dc2626;
+      --success: #16a34a;
+      --warning: #b45309;
+      --bg: #f1f5f9;
+      --card: #ffffff;
+      --border: #e2e8f0;
+      --text: #1e293b;
+      --muted: #64748b;
+      --red-bg: #fef2f2;
+      --green-bg: #f0fdf4;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+
+    .page-header {
+      background: linear-gradient(135deg, #1e1b4b 0%, #4338ca 60%, #4f46e5 100%);
+      color: #fff;
+      padding: 2.5rem 1.5rem 2rem;
+      text-align: center;
+    }
+    .page-header h1 { font-size: clamp(1.35rem, 3vw, 1.9rem); font-weight: 800; }
+    .page-header p { margin-top: 0.5rem; color: #c7d2fe; }
+
+    .container { max-width: 1140px; margin: 0 auto; padding: 1.75rem 1.25rem 3rem; }
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem; }
+
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+
+    .card-title {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: var(--muted);
+      margin-bottom: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .currency-toggle {
+      display: inline-flex;
+      gap: 0.35rem;
+      background: var(--border);
+      border-radius: 6px;
+      padding: 0.3rem;
+    }
+
+    .currency-btn {
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.3rem 0.6rem;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      background: transparent;
+      color: var(--muted);
+      transition: all 0.2s;
+    }
+
+    .currency-btn.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    .slider-group { margin-bottom: 1.5rem; }
+    .slider-header { display: flex; justify-content: space-between; margin-bottom: 0.55rem; }
+    .slider-label { font-size: 0.875rem; font-weight: 500; }
+
+    .slider-val {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--primary);
+      min-width: 6rem;
+      text-align: right;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .slider-val:hover { opacity: 0.75; }
+
+    .editable-input {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--primary);
+      border: 2px solid var(--primary);
+      border-radius: 4px;
+      padding: 0.2rem 0.4rem;
+      min-width: 6rem;
+      text-align: right;
+      font-family: inherit;
+      background: rgba(79,70,229,0.05);
+      outline: none;
+    }
+
+    .editable-input:focus {
+      background: rgba(79,70,229,0.1);
+      box-shadow: 0 0 0 3px rgba(79,70,229,0.15);
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 6px;
+      border-radius: 3px;
+      outline: none;
+      cursor: pointer;
+      -webkit-appearance: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--primary);
+      cursor: pointer;
+      box-shadow: 0 0 0 3px rgba(79,70,229,0.18);
+    }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      border: none;
+      border-radius: 50%;
+      background: var(--primary);
+      cursor: pointer;
+    }
+
+    .breakdown-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.8rem 0;
+      border-bottom: 1px solid var(--border);
+      gap: 1rem;
+    }
+    .breakdown-row:last-child { border-bottom: none; }
+    .breakdown-name { font-size: 0.875rem; font-weight: 500; }
+    .breakdown-formula { font-size: 0.72rem; color: var(--muted); margin-top: 3px; }
+    .breakdown-amt { font-size: 0.9rem; font-weight: 700; color: var(--danger); white-space: nowrap; }
+
+    .metrics-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.25rem; }
+
+    .metric-card {
+      border-radius: 14px;
+      padding: 1.25rem 1.5rem;
+      border: 1px solid var(--border);
+      background: var(--card);
+    }
+
+    .m-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: var(--muted); margin-bottom: 0.4rem; }
+    .m-value { font-size: clamp(1.5rem, 2.5vw, 1.9rem); font-weight: 800; letter-spacing: -0.035em; }
+    .m-sub { font-size: 0.72rem; color: var(--muted); margin-top: 0.3rem; }
+
+    .mc-replace .m-value { color: var(--danger); }
+    .mc-retain .m-value { color: var(--warning); }
+    .mc-save { background: var(--green-bg); border-color: #86efac; }
+    .mc-save .m-value { color: var(--success); }
+    .mc-save-neg { background: var(--red-bg); border-color: #fca5a5; }
+    .mc-save-neg .m-value { color: var(--danger); }
+
+    .verdict-row { display: grid; grid-template-columns: 1fr auto 1fr; gap: 1rem; align-items: center; margin-bottom: 1.25rem; }
+
+    .verdict-panel {
+      border-radius: 14px;
+      padding: 1.6rem 1.5rem;
+      text-align: center;
+      border: 2px solid transparent;
+    }
+
+    .v-scenario { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; margin-bottom: 0.5rem; }
+    .v-amount { font-size: clamp(1.8rem, 3vw, 2.4rem); font-weight: 800; line-height: 1; }
+    .v-desc { font-size: 0.78rem; color: var(--muted); margin-top: 0.5rem; }
+
+    .v-badge {
+      display: inline-block;
+      margin-top: 0.9rem;
+      padding: 0.3rem 0.9rem;
+      border-radius: 999px;
+      font-size: 0.68rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .vp-replace { background: var(--red-bg); border-color: #fca5a5; }
+    .vp-replace .v-scenario { color: var(--danger); }
+    .vp-replace .v-amount { color: var(--danger); }
+
+    .vp-retain { background: var(--green-bg); border-color: #86efac; }
+    .vp-retain .v-scenario { color: var(--success); }
+    .vp-retain .v-amount { color: var(--success); }
+
+    .winner { box-shadow: 0 0 0 3px rgba(22,163,74,0.3), 0 6px 20px rgba(22,163,74,0.12); }
+    .loser { opacity: 0.72; }
+
+    .badge-good { background: #dcfce7; color: #14532d; }
+    .badge-bad { background: #fee2e2; color: #7f1d1d; }
+
+    .vs-divider { font-size: 1.1rem; font-weight: 800; color: var(--muted); }
+
+    .multiplier-banner {
+      background: linear-gradient(135deg, #1e1b4b 0%, #3730a3 50%, #4f46e5 100%);
+      color: #e0e7ff;
+      border-radius: 14px;
+      padding: 1.2rem 2rem;
+      text-align: center;
+      font-size: 0.97rem;
+      line-height: 1.75;
+    }
+
+    .multiplier-banner em { font-style: normal; font-weight: 800; font-size: 1.1rem; color: #a5b4fc; }
+
+    @media (max-width: 720px) {
+      .two-col, .metrics-row, .verdict-row { grid-template-columns: 1fr; }
+      .vs-divider { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="page-header">
+  <h1>Employee Retention Cost Calculator</h1>
+  <p>Compare the true cost of replacing an employee vs. retaining them with a raise</p>
+</header>
+
+<main class="container">
+  <div class="two-col">
+    <div class="card">
+      <div class="card-title">
+        <span>Parameters</span>
+        <div class="currency-toggle">
+          <button class="currency-btn active" id="curr-eur">€ EUR</button>
+          <button class="currency-btn" id="curr-usd">$ USD</button>
+        </div>
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-header">
+          <span class="slider-label">Annual Salary</span>
+          <span class="slider-val" id="d-salary"></span>
+        </div>
+        <input type="range" id="s-salary" min="40000" max="200000" step="1000" value="80000">
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-header">
+          <span class="slider-label">Hiring Manager Hours</span>
+          <span class="slider-val" id="d-hmh"></span>
+        </div>
+        <input type="range" id="s-hmh" min="10" max="200" step="5" value="40">
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-header">
+          <span class="slider-label">Time to Hire</span>
+          <span class="slider-val" id="d-tth"></span>
+        </div>
+        <input type="range" id="s-tth" min="1" max="9" step="1" value="3">
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-header">
+          <span class="slider-label">New Hire Productivity (Onboarding)</span>
+          <span class="slider-val" id="d-prod"></span>
+        </div>
+        <input type="range" id="s-prod" min="0" max="100" step="1" value="50">
+      </div>
+
+      <div class="slider-group">
+        <div class="slider-header">
+          <span class="slider-label">Annual Retention Raise</span>
+          <span class="slider-val" id="d-raise"></span>
+        </div>
+        <input type="range" id="s-raise" min="1000" max="20000" step="500" value="5000">
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Replacement Cost Breakdown</div>
+      <div class="breakdown-row">
+        <div><div class="breakdown-name">Recruiter Fees</div><div class="breakdown-formula">17.5% of annual salary</div></div>
+        <div class="breakdown-amt" id="b-rec"></div>
+      </div>
+      <div class="breakdown-row">
+        <div><div class="breakdown-name">Hiring Manager Time</div><div class="breakdown-formula" id="f-hmt"></div></div>
+        <div class="breakdown-amt" id="b-hmt"></div>
+      </div>
+      <div class="breakdown-row">
+        <div><div class="breakdown-name">HR Panel Cost</div><div class="breakdown-formula">3 rounds × 4 people × 2 h × €120</div></div>
+        <div class="breakdown-amt" id="b-hrp">€2,880</div>
+      </div>
+      <div class="breakdown-row">
+        <div><div class="breakdown-name">Market Salary Premium</div><div class="breakdown-formula">8% above current salary (year 1 delta)</div></div>
+        <div class="breakdown-amt" id="b-prem"></div>
+      </div>
+      <div class="breakdown-row">
+        <div><div class="breakdown-name">Productivity Vacuum</div><div class="breakdown-formula" id="f-vac"></div></div>
+        <div class="breakdown-amt" id="b-vac"></div>
+      </div>
+      <div class="breakdown-row">
+        <div><div class="breakdown-name">Onboarding Ramp Cost</div><div class="breakdown-formula" id="f-ramp"></div></div>
+        <div class="breakdown-amt" id="b-ramp"></div>
+      </div>
+      <div class="breakdown-row">
+        <div><div class="breakdown-name">Institutional Knowledge Loss</div><div class="breakdown-formula">Fixed — processes, relationships, domain context</div></div>
+        <div class="breakdown-amt" id="b-know">€15,000</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="metrics-row">
+    <div class="metric-card mc-replace"><div class="m-label">Total Replacement Cost</div><div class="m-value" id="m-rep"></div><div class="m-sub">One-time cost to find &amp; onboard</div></div>
+    <div class="metric-card mc-retain"><div class="m-label">5-Year Retention Cost</div><div class="m-value" id="m-ret"></div><div class="m-sub">Annual raise × 5 years</div></div>
+    <div class="metric-card mc-save" id="save-card"><div class="m-label" id="save-label">Net Saving (Retain)</div><div class="m-value" id="m-save"></div><div class="m-sub" id="save-sub"></div></div>
+  </div>
+
+  <div class="verdict-row">
+    <div class="verdict-panel vp-replace" id="vp-rep"><div class="v-scenario">Replace</div><div class="v-amount" id="v-rep-amt"></div><div class="v-desc">One-time replacement cost</div><div class="v-badge" id="badge-rep"></div></div>
+    <div class="vs-divider">VS</div>
+    <div class="verdict-panel vp-retain" id="vp-ret"><div class="v-scenario">Retain (5 yr)</div><div class="v-amount" id="v-ret-amt"></div><div class="v-desc">Cumulative raise over 5 years</div><div class="v-badge" id="badge-ret"></div></div>
+  </div>
+
+  <div class="multiplier-banner" id="banner"></div>
+</main>
+
+<script>
+(function () {
+  let currency = 'eur';
+
+  const $ = id => document.getElementById(id);
+
+  const eur = n => new Intl.NumberFormat('en-GB', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(n);
+  const usd = n => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
+  const fmt = n => currency === 'eur' ? eur(n) : usd(n);
+
+  // Store actual values (including overrides)
+  const values = {
+    salary: 80000,
+    hmh: 40,
+    tth: 3,
+    prod: 50,
+    raise: 5000,
+  };
+
+  const fields = {
+    salary: { displayId: 'd-salary', sliderId: 's-salary', clamp: null },
+    hmh: { displayId: 'd-hmh', sliderId: 's-hmh', clamp: null },
+    tth: { displayId: 'd-tth', sliderId: 's-tth', clamp: null },
+    prod: { displayId: 'd-prod', sliderId: 's-prod', clamp: [0, 100] },
+    raise: { displayId: 'd-raise', sliderId: 's-raise', clamp: null },
+  };
+
+  Object.entries(fields).forEach(([key, field]) => {
+    const display = $(field.displayId);
+    const slider = $(field.sliderId);
+    let isEditing = false;
+
+    display.addEventListener('click', () => {
+      if (isEditing) return;
+      isEditing = true;
+
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'editable-input';
+      input.value = values[key];
+
+      display.parentNode.insertBefore(input, display);
+      display.style.display = 'none';
+      input.focus();
+      input.select();
+
+      const finish = () => {
+        const val = parseFloat(input.value.replace(/[$€,\s%]/g, ''));
+        if (!isNaN(val)) {
+          let finalVal = val;
+          if (field.clamp) {
+            finalVal = Math.max(field.clamp[0], Math.min(field.clamp[1], val));
+          } else {
+            finalVal = Math.max(parseFloat(slider.min), val);
+          }
+          values[key] = finalVal;
+          slider.value = Math.min(finalVal, slider.max);
+          calc();
+        }
+        input.remove();
+        display.style.display = '';
+        isEditing = false;
+      };
+
+      input.addEventListener('blur', finish);
+      input.addEventListener('keydown', e => {
+        if (e.key === 'Enter') finish();
+        if (e.key === 'Escape') {
+          input.remove();
+          display.style.display = '';
+          isEditing = false;
+        }
+      });
+    });
+
+    slider.addEventListener('input', () => {
+      values[key] = +slider.value;
+      calc();
+    });
+  });
+
+  function fill(slider) {
+    const lo = +slider.min, hi = +slider.max, v = +slider.value;
+    const p = ((v - lo) / (hi - lo)) * 100;
+    slider.style.background = `linear-gradient(to right,#4f46e5 0%,#4f46e5 ${p}%,#e2e8f0 ${p}%,#e2e8f0 100%)`;
+  }
+
+  function calc() {
+    const salary = values.salary;
+    const hmh = values.hmh;
+    const tth = values.tth;
+    const prod = values.prod;
+    const raise = values.raise;
+
+    $('d-salary').textContent = fmt(salary);
+    $('d-hmh').textContent = `${hmh} h`;
+    $('d-tth').textContent = `${tth} month${tth !== 1 ? 's' : ''}`;
+    $('d-prod').textContent = `${prod}%`;
+    $('d-raise').textContent = fmt(raise);
+
+    ['s-salary', 's-hmh', 's-tth', 's-prod', 's-raise'].forEach(id => fill($(id)));
+
+    const recruiter = salary * 0.175;
+    const hmTime = hmh * 120;
+    const hrPanel = 2880;
+    const premium = salary * 0.08;
+    const vacuum = 0.40 * (salary / 12) * tth;
+    const gap = 1 - prod / 100;
+    const ramp = 4 * (salary / 12) * gap;
+    const knowledge = 15000;
+
+    const totalReplace = recruiter + hmTime + hrPanel + premium + vacuum + ramp + knowledge;
+    const totalRetain = raise * 5;
+    const netSave = totalReplace - totalRetain;
+
+    $('f-hmt').textContent = `${hmh} h × ${currency === 'eur' ? '€' : '$'}120/h`;
+    $('f-vac').textContent = `40% × monthly salary × ${tth} month${tth !== 1 ? 's' : ''}`;
+    $('f-ramp').textContent = `4 months × salary/12 × ${(gap * 100).toFixed(0)}% gap`;
+
+    $('b-rec').textContent = fmt(recruiter);
+    $('b-hmt').textContent = fmt(hmTime);
+    $('b-prem').textContent = fmt(premium);
+    $('b-vac').textContent = fmt(vacuum);
+    $('b-ramp').textContent = fmt(ramp);
+    $('b-hrp').textContent = currency === 'eur' ? '€2,880' : '$2,880';
+    $('b-know').textContent = currency === 'eur' ? '€15,000' : '$15,000';
+
+    $('m-rep').textContent = fmt(totalReplace);
+    $('m-ret').textContent = fmt(totalRetain);
+
+    const sc = $('save-card');
+    if (netSave >= 0) {
+      sc.className = 'metric-card mc-save';
+      $('save-label').textContent = 'Net Saving (Retain)';
+      $('m-save').textContent = fmt(netSave);
+      $('save-sub').textContent = 'You save this by retaining vs. replacing';
+    } else {
+      sc.className = 'metric-card mc-save-neg';
+      $('save-label').textContent = 'Net Extra Cost (Retain)';
+      $('m-save').textContent = fmt(-netSave);
+      $('save-sub').textContent = 'At this raise level, retaining costs more';
+    }
+
+    $('v-rep-amt').textContent = fmt(totalReplace);
+    $('v-ret-amt').textContent = fmt(totalRetain);
+
+    const vRep = $('vp-rep');
+    const vRet = $('vp-ret');
+
+    if (netSave > 0) {
+      vRep.classList.add('loser'); vRep.classList.remove('winner');
+      vRet.classList.add('winner'); vRet.classList.remove('loser');
+      $('badge-rep').textContent = 'More Expensive'; $('badge-rep').className = 'v-badge badge-bad';
+      $('badge-ret').textContent = '✓ Recommended'; $('badge-ret').className = 'v-badge badge-good';
+    } else {
+      vRet.classList.add('loser'); vRet.classList.remove('winner');
+      vRep.classList.add('winner'); vRep.classList.remove('loser');
+      $('badge-rep').textContent = '✓ Cheaper Here'; $('badge-rep').className = 'v-badge badge-good';
+      $('badge-ret').textContent = 'Costs More'; $('badge-ret').className = 'v-badge badge-bad';
+    }
+
+    const mult = (totalReplace / salary).toFixed(2).replace(/\.?0+$/, '');
+    let html;
+    if (netSave > 0) {
+      const pct = Math.round((netSave / totalReplace) * 100);
+      html = `Replacing this employee costs <em>${mult}×</em> their annual salary — retaining them is <em>${pct}% cheaper</em> over 5 years, saving <em>${fmt(netSave)}</em>.`;
+    } else {
+      const pct = Math.round((-netSave / totalRetain) * 100);
+      html = `Replacing this employee costs <em>${mult}×</em> their annual salary — but at this raise level, the 5-year retention cost exceeds replacement by <em>${fmt(-netSave)}</em> <em>(${pct}% over)</em>.`;
+    }
+    $('banner').innerHTML = html;
+  }
+
+  $('curr-eur').addEventListener('click', () => {
+    currency = 'eur';
+    $('curr-eur').classList.add('active');
+    $('curr-usd').classList.remove('active');
+    calc();
+  });
+
+  $('curr-usd').addEventListener('click', () => {
+    currency = 'usd';
+    $('curr-usd').classList.add('active');
+    $('curr-eur').classList.remove('active');
+    calc();
+  });
+
+  calc();
+})();
+</script>
+</body>
+</html>
