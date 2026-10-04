@@ -6,17 +6,29 @@
   <title>Employee Retention Cost Calculator</title>
   <style>
     :root {
-      --primary: #4f46e5;
-      --danger: #dc2626;
-      --success: #16a34a;
-      --warning: #b45309;
-      --bg: #f1f5f9;
-      --card: #ffffff;
-      --border: #e2e8f0;
-      --text: #1e293b;
-      --muted: #64748b;
-      --red-bg: #fef2f2;
-      --green-bg: #f0fdf4;
+      /* Colour tokens, mirrored from Portfolio/src/app/globals.css */
+      --color-bg: #ffffff;
+      --color-fg: #121212;
+      --color-muted: #8a8a8a;
+      --color-subtle: #6b6b6b;
+      --color-surface: #f2f2f0;
+      --color-surface-strong: #e4e4e1;
+      --color-border: #e6e6e6;
+      --color-neon-green: #cfff31;
+      --color-neon-pink: #ff5ce1;
+      --color-neon-blue: #31e5ff;
+
+      /* Roles used by the calculator */
+      --primary: var(--color-fg);
+      --bg: var(--color-surface);
+      --card: var(--color-bg);
+      --border: var(--color-border);
+      --text: var(--color-fg);
+      --muted: var(--color-subtle);
+      --good: var(--color-neon-green);
+      --bad: var(--color-neon-pink);
+      --track: var(--color-surface-strong);
+      --ring: rgba(18, 18, 18, 0.12);
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -29,18 +41,18 @@
     }
 
     .page-header {
-      background: linear-gradient(135deg, #1e1b4b 0%, #4338ca 60%, #4f46e5 100%);
-      color: #fff;
+      background: var(--color-fg);
+      color: var(--color-bg);
       padding: 2.5rem 1.5rem 2rem;
       text-align: center;
     }
     .page-header h1 { font-size: clamp(1.35rem, 3vw, 1.9rem); font-weight: 800; }
-    .page-header p { margin-top: 0.5rem; color: #c7d2fe; }
+    .page-header p { margin-top: 0.5rem; color: var(--color-muted); }
 
     .container { max-width: 1140px; margin: 0 auto; padding: 1.75rem 1.25rem 3rem; }
     .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 1.25rem; }
 
-    .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+    .card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 1.5rem; box-shadow: none; }
 
     .card-title {
       font-size: 0.7rem;
@@ -57,7 +69,7 @@
     .currency-toggle {
       display: inline-flex;
       gap: 0.35rem;
-      background: var(--border);
+      background: var(--color-surface);
       border-radius: 6px;
       padding: 0.3rem;
     }
@@ -76,7 +88,7 @@
 
     .currency-btn.active {
       background: var(--primary);
-      color: white;
+      color: var(--color-bg);
     }
 
     .slider-group { margin-bottom: 1.5rem; }
@@ -105,13 +117,13 @@
       min-width: 6rem;
       text-align: right;
       font-family: inherit;
-      background: rgba(79,70,229,0.05);
+      background: var(--color-surface);
       outline: none;
     }
 
     .editable-input:focus {
-      background: rgba(79,70,229,0.1);
-      box-shadow: 0 0 0 3px rgba(79,70,229,0.15);
+      background: var(--card);
+      box-shadow: 0 0 0 3px var(--ring);
     }
 
     input[type="range"] {
@@ -130,7 +142,7 @@
       border-radius: 50%;
       background: var(--primary);
       cursor: pointer;
-      box-shadow: 0 0 0 3px rgba(79,70,229,0.18);
+      box-shadow: 0 0 0 3px var(--ring);
     }
 
     input[type="range"]::-moz-range-thumb {
@@ -152,7 +164,7 @@
     .breakdown-row:last-child { border-bottom: none; }
     .breakdown-name { font-size: 0.875rem; font-weight: 500; }
     .breakdown-formula { font-size: 0.72rem; color: var(--muted); margin-top: 3px; }
-    .breakdown-amt { font-size: 0.9rem; font-weight: 700; color: var(--danger); white-space: nowrap; }
+    .breakdown-amt { font-size: 0.9rem; font-weight: 700; color: var(--text); white-space: nowrap; }
 
     .expandable-row {
       cursor: pointer;
@@ -186,7 +198,7 @@
     }
 
     .expandable-content {
-      background: rgba(79,70,229,0.02);
+      background: var(--color-surface);
       border-left: 2px solid var(--border);
       padding: 1rem;
       margin: 0.5rem 0 0.5rem -1.5rem;
@@ -218,14 +230,35 @@
       font-size: 0.85rem;
       font-weight: 600;
       color: var(--primary);
-      background: white;
+      background: var(--card);
       outline: none;
       transition: border-color 0.2s;
     }
 
-    .param-input-group input:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 2px rgba(79,70,229,0.1);
+    .param-input-group input[type="range"] {
+      border: none;
+      border-radius: 3px;
+      padding: 0;
+      background: transparent;
+    }
+
+    .param-input-group input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--primary);
+      cursor: pointer;
+      box-shadow: 0 0 0 3px var(--ring);
+    }
+
+    .param-input-group input[type="range"]::-moz-range-thumb {
+      width: 20px;
+      height: 20px;
+      border: none;
+      border-radius: 50%;
+      background: var(--primary);
+      cursor: pointer;
     }
 
     .metrics-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.25rem; }
@@ -241,12 +274,10 @@
     .m-value { font-size: clamp(1.5rem, 2.5vw, 1.9rem); font-weight: 800; letter-spacing: -0.035em; }
     .m-sub { font-size: 0.72rem; color: var(--muted); margin-top: 0.3rem; }
 
-    .mc-replace .m-value { color: var(--danger); }
-    .mc-retain .m-value { color: var(--warning); }
-    .mc-save { background: var(--green-bg); border-color: #86efac; }
-    .mc-save .m-value { color: var(--success); }
-    .mc-save-neg { background: var(--red-bg); border-color: #fca5a5; }
-    .mc-save-neg .m-value { color: var(--danger); }
+    .mc-save { background: var(--good); border-color: var(--good); }
+    .mc-save-neg { background: var(--bad); border-color: var(--bad); }
+    .mc-save .m-label, .mc-save .m-sub,
+    .mc-save-neg .m-label, .mc-save-neg .m-sub { color: var(--text); }
 
     .verdict-row { display: grid; grid-template-columns: 1fr auto 1fr; gap: 1rem; align-items: center; margin-bottom: 1.25rem; }
 
@@ -257,7 +288,7 @@
       border: 2px solid transparent;
     }
 
-    .v-scenario { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; margin-bottom: 0.5rem; }
+    .v-scenario { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; margin-bottom: 0.5rem; color: var(--muted); }
     .v-amount { font-size: clamp(1.8rem, 3vw, 2.4rem); font-weight: 800; line-height: 1; }
     .v-desc { font-size: 0.78rem; color: var(--muted); margin-top: 0.5rem; }
 
@@ -271,25 +302,19 @@
       text-transform: uppercase;
     }
 
-    .vp-replace { background: var(--red-bg); border-color: #fca5a5; }
-    .vp-replace .v-scenario { color: var(--danger); }
-    .vp-replace .v-amount { color: var(--danger); }
+    .vp-replace, .vp-retain { background: var(--card); border-color: var(--border); }
 
-    .vp-retain { background: var(--green-bg); border-color: #86efac; }
-    .vp-retain .v-scenario { color: var(--success); }
-    .vp-retain .v-amount { color: var(--success); }
-
-    .winner { box-shadow: 0 0 0 3px rgba(22,163,74,0.3), 0 6px 20px rgba(22,163,74,0.12); }
+    .winner { border-color: var(--text); }
     .loser { opacity: 0.72; }
 
-    .badge-good { background: #dcfce7; color: #14532d; }
-    .badge-bad { background: #fee2e2; color: #7f1d1d; }
+    .badge-good { background: var(--good); color: var(--text); }
+    .badge-bad { background: var(--bad); color: var(--text); }
 
     .vs-divider { font-size: 1.1rem; font-weight: 800; color: var(--muted); }
 
     .multiplier-banner {
-      background: linear-gradient(135deg, #1e1b4b 0%, #3730a3 50%, #4f46e5 100%);
-      color: #e0e7ff;
+      background: var(--color-fg);
+      color: var(--color-bg);
       border-radius: 14px;
       padding: 1.2rem 2rem;
       text-align: center;
@@ -297,7 +322,7 @@
       line-height: 1.75;
     }
 
-    .multiplier-banner em { font-style: normal; font-weight: 800; font-size: 1.1rem; color: #a5b4fc; }
+    .multiplier-banner em { font-style: normal; font-weight: 800; font-size: 1.1rem; color: var(--good); }
 
     @media (max-width: 720px) {
       .two-col, .metrics-row, .verdict-row { grid-template-columns: 1fr; }
@@ -406,21 +431,75 @@
           </div>
         </div>
       </div>
-      <div class="breakdown-row">
-        <div><div class="breakdown-name">Market Salary Premium</div><div class="breakdown-formula">8% above current salary (year 1 delta)</div></div>
+      <div class="breakdown-row expandable-row" id="msp-expand-toggle">
+        <div><div class="breakdown-name"><span class="expand-toggle">▶</span>Market Salary Premium</div><div class="breakdown-formula" id="f-msp"></div></div>
         <div class="breakdown-amt" id="b-prem"></div>
       </div>
-      <div class="breakdown-row">
-        <div><div class="breakdown-name">Productivity Vacuum</div><div class="breakdown-formula" id="f-vac"></div></div>
+      <div class="expandable-section" id="msp-expandable">
+        <div class="expandable-content" style="grid-template-columns: 1fr;">
+          <div style="display: flex; gap: 1rem; align-items: flex-end;">
+            <div class="param-input-group" style="flex: 1;">
+              <label>Premium Percentage</label>
+              <input type="number" id="msp-percent" min="0" max="50" step="0.5" value="8">
+            </div>
+            <div class="param-input-group" style="flex: 0.8;">
+              <label style="display: block; margin-bottom: 0.5rem;">
+                <input type="checkbox" id="msp-enabled" checked style="width: auto; margin-right: 0.4rem;">
+                <span style="font-weight: 500; color: var(--text);">Enabled</span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="breakdown-row expandable-row" id="vac-expand-toggle">
+        <div><div class="breakdown-name"><span class="expand-toggle">▶</span>Productivity Vacuum</div><div class="breakdown-formula" id="f-vac"></div></div>
         <div class="breakdown-amt" id="b-vac"></div>
       </div>
-      <div class="breakdown-row">
-        <div><div class="breakdown-name">Onboarding Ramp Cost</div><div class="breakdown-formula" id="f-ramp"></div></div>
+      <div class="expandable-section" id="vac-expandable">
+        <div class="expandable-content">
+          <div class="param-input-group">
+            <label>Productivity Loss %</label>
+            <input type="number" id="vac-loss" min="0" max="100" step="1" value="40">
+          </div>
+          <div class="param-input-group">
+            <label>Notice Period (months)</label>
+            <input type="number" id="vac-months" min="1" max="24" step="1" value="3">
+          </div>
+        </div>
+        <div style="padding: 0.75rem 1.5rem 0; font-size: 0.75rem; color: var(--muted); font-style: italic;">
+          If you don't know what the productivity decrease of your employee is going to be, use 40%.
+        </div>
+      </div>
+      <div class="breakdown-row expandable-row" id="ramp-expand-toggle">
+        <div><div class="breakdown-name"><span class="expand-toggle">▶</span>Onboarding Ramp Cost</div><div class="breakdown-formula" id="f-ramp"></div></div>
         <div class="breakdown-amt" id="b-ramp"></div>
       </div>
-      <div class="breakdown-row">
-        <div><div class="breakdown-name">Institutional Knowledge Loss</div><div class="breakdown-formula">Fixed — processes, relationships, domain context</div></div>
-        <div class="breakdown-amt" id="b-know">€15,000</div>
+      <div class="expandable-section" id="ramp-expandable">
+        <div class="expandable-content">
+          <div class="param-input-group">
+            <label>Ramp Months</label>
+            <input type="number" id="ramp-months" min="1" max="24" step="1" value="4">
+          </div>
+          <div class="param-input-group">
+            <label>New Hire Productivity %</label>
+            <input type="number" id="ramp-prod" min="0" max="100" step="1" value="50">
+          </div>
+        </div>
+      </div>
+      <div class="breakdown-row expandable-row" id="know-expand-toggle">
+        <div><div class="breakdown-name"><span class="expand-toggle">▶</span>Institutional Knowledge Loss</div><div class="breakdown-formula" id="f-know"></div></div>
+        <div class="breakdown-amt" id="b-know"></div>
+      </div>
+      <div class="expandable-section" id="know-expandable">
+        <div class="expandable-content" style="grid-template-columns: 1fr;">
+          <div class="slider-group param-input-group" style="margin: 0;">
+            <div class="slider-header">
+              <label>Knowledge Loss (% of annual salary)</label>
+              <span class="slider-val" id="know-val"></span>
+            </div>
+            <input type="range" id="know-slider" min="5" max="30" step="1" value="15">
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -462,6 +541,13 @@
     hrPeople: 4,
     hrHours: 2,
     hrRate: 120,
+    mspEnabled: true,
+    mspPercent: 8,
+    vacLoss: 40,
+    vacMonths: 3,
+    rampMonths: 4,
+    rampProd: 50,
+    knowPercent: 15,
   };
 
   const fields = {
@@ -566,10 +652,104 @@
     });
   });
 
+  // Market Salary Premium toggle
+  const mspToggle = $('msp-expand-toggle');
+  const mspSection = $('msp-expandable');
+  const mspToggleIcon = mspToggle.querySelector('.expand-toggle');
+  let mspExpanded = false;
+
+  mspToggle.addEventListener('click', () => {
+    mspExpanded = !mspExpanded;
+    mspSection.classList.toggle('open');
+    mspToggleIcon.classList.toggle('open');
+  });
+
+  // MSP inputs
+  $('msp-percent').addEventListener('input', () => {
+    const val = parseFloat($('msp-percent').value) || 0;
+    values.mspPercent = Math.max(0, Math.min(50, val));
+    calc();
+  });
+
+  $('msp-enabled').addEventListener('change', () => {
+    values.mspEnabled = $('msp-enabled').checked;
+    calc();
+  });
+
+  // Productivity Vacuum toggle
+  const vacToggle = $('vac-expand-toggle');
+  const vacSection = $('vac-expandable');
+  const vacToggleIcon = vacToggle.querySelector('.expand-toggle');
+  let vacExpanded = false;
+
+  vacToggle.addEventListener('click', () => {
+    vacExpanded = !vacExpanded;
+    vacSection.classList.toggle('open');
+    vacToggleIcon.classList.toggle('open');
+  });
+
+  $('vac-loss').addEventListener('input', () => {
+    const val = parseFloat($('vac-loss').value) || 0;
+    values.vacLoss = Math.max(0, Math.min(100, val));
+    calc();
+  });
+
+  $('vac-months').addEventListener('input', () => {
+    const val = parseFloat($('vac-months').value) || 0;
+    values.vacMonths = Math.max(1, val);
+    calc();
+  });
+
+  // Onboarding Ramp toggle
+  const rampToggle = $('ramp-expand-toggle');
+  const rampSection = $('ramp-expandable');
+  const rampToggleIcon = rampToggle.querySelector('.expand-toggle');
+  let rampExpanded = false;
+
+  rampToggle.addEventListener('click', () => {
+    rampExpanded = !rampExpanded;
+    rampSection.classList.toggle('open');
+    rampToggleIcon.classList.toggle('open');
+  });
+
+  $('ramp-months').addEventListener('input', () => {
+    const val = parseFloat($('ramp-months').value) || 0;
+    values.rampMonths = Math.max(1, val);
+    calc();
+  });
+
+  $('ramp-prod').addEventListener('input', () => {
+    const val = parseFloat($('ramp-prod').value) || 0;
+    values.rampProd = Math.max(0, Math.min(100, val));
+    calc();
+  });
+
+  // Institutional Knowledge Loss toggle
+  const knowToggle = $('know-expand-toggle');
+  const knowSection = $('know-expandable');
+  const knowToggleIcon = knowToggle.querySelector('.expand-toggle');
+  let knowExpanded = false;
+
+  knowToggle.addEventListener('click', () => {
+    knowExpanded = !knowExpanded;
+    knowSection.classList.toggle('open');
+    knowToggleIcon.classList.toggle('open');
+  });
+
+  const knowSlider = $('know-slider');
+  knowSlider.addEventListener('input', () => {
+    values.knowPercent = +knowSlider.value;
+    fill(knowSlider);
+    calc();
+  });
+
+  // Initialize knowledge slider fill
+  fill(knowSlider);
+
   function fill(slider) {
     const lo = +slider.min, hi = +slider.max, v = +slider.value;
     const p = ((v - lo) / (hi - lo)) * 100;
-    slider.style.background = `linear-gradient(to right,#4f46e5 0%,#4f46e5 ${p}%,#e2e8f0 ${p}%,#e2e8f0 100%)`;
+    slider.style.background = `linear-gradient(to right,var(--primary) 0%,var(--primary) ${p}%,var(--track) ${p}%,var(--track) 100%)`;
   }
 
   function calc() {
@@ -592,11 +772,11 @@
     const recruiter = salary * (recfee / 100);
     const hmTime = hmh * 120;
     const hrPanel = values.hrRounds * values.hrPeople * values.hrHours * values.hrRate;
-    const premium = salary * 0.08;
-    const vacuum = 0.40 * (salary / 12) * tth;
-    const gap = 1 - prod / 100;
-    const ramp = 4 * (salary / 12) * gap;
-    const knowledge = 15000;
+    const premium = values.mspEnabled ? salary * (values.mspPercent / 100) : 0;
+    const vacuum = (values.vacLoss / 100) * (salary / 12) * values.vacMonths;
+    const gapRamp = 1 - values.rampProd / 100;
+    const ramp = values.rampMonths * (salary / 12) * gapRamp;
+    const knowledge = salary * (values.knowPercent / 100);
 
     const totalReplace = recruiter + hmTime + hrPanel + premium + vacuum + ramp + knowledge;
     const totalRetain = raise * 5;
@@ -605,8 +785,12 @@
     $('f-hmt').textContent = `${hmh} h × ${currency === 'eur' ? '€' : '$'}120/h`;
     $('f-hrp').textContent = `${values.hrRounds} rounds × ${values.hrPeople} people × ${values.hrHours} h × ${currency === 'eur' ? '€' : '$'}${values.hrRate}`;
     $('f-rec').textContent = `${recfee}% of annual salary`;
-    $('f-vac').textContent = `40% × monthly salary × ${tth} month${tth !== 1 ? 's' : ''}`;
-    $('f-ramp').textContent = `4 months × salary/12 × ${(gap * 100).toFixed(0)}% gap`;
+    $('f-msp').textContent = values.mspEnabled ? `${values.mspPercent}% above current salary (year 1 delta)` : 'Disabled';
+    $('f-vac').textContent = `${values.vacLoss}% × monthly salary × ${values.vacMonths} month${values.vacMonths !== 1 ? 's' : ''}`;
+    $('f-ramp').textContent = `${values.rampMonths} months × salary/12 × ${(gapRamp * 100).toFixed(0)}% gap`;
+    $('f-know').textContent = `${values.knowPercent}% of annual salary`;
+
+    $('know-val').textContent = `${values.knowPercent}%`;
 
     $('b-rec').textContent = fmt(recruiter);
     $('b-hmt').textContent = fmt(hmTime);
@@ -614,7 +798,7 @@
     $('b-vac').textContent = fmt(vacuum);
     $('b-ramp').textContent = fmt(ramp);
     $('b-hrp').textContent = fmt(hrPanel);
-    $('b-know').textContent = currency === 'eur' ? '€15,000' : '$15,000';
+    $('b-know').textContent = fmt(knowledge);
 
     $('m-rep').textContent = fmt(totalReplace);
     $('m-ret').textContent = fmt(totalRetain);
